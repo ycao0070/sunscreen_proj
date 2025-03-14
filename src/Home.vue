@@ -35,9 +35,15 @@
         <div class="card-body d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center">
             <i class="bi bi-geo-alt-fill text-primary me-2"></i>
-            <span>Lorne, Victoria</span>
+            <input
+              v-model="city"
+              class="form-control form-control-sm"
+              style="width: 200px"
+              @keyup.enter="fetchWeatherData"
+              placeholder="Enter location..."
+            />
           </div>
-          <a href="#" class="text-primary">Change</a>
+          <button class="btn btn-primary btn-sm" @click="fetchWeatherData">Update</button>
         </div>
       </div>
 
@@ -46,15 +52,15 @@
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <div>
-              <h6>Friday, March 13, 2025</h6>
-              <p>12:30 PM • 28°C</p>
+              <h6>{{ currentDate }}</h6>
+              <p>{{ currentTime }} • {{ temperature }}°C</p>
             </div>
             <div class="text-end">
               <p class="text-warning">UV INDEX</p>
-              <h3 class="text-warning">HIGH</h3>
+              <h3 class="text-warning">{{ getUVLevel }}</h3>
             </div>
           </div>
-          <div class="uv-circle">9</div>
+          <div class="uv-circle">{{ uvIndex }}</div>
           <div class="progress">
             <div class="progress-bar bg-success" style="width: 30%"></div>
             <div class="progress-bar bg-warning" style="width: 30%"></div>
@@ -160,12 +166,77 @@
 </template>
 
 <script>
+import { getWeatherData, getUVIndex } from './weatherService'
+
 export default {
   name: 'Home',
   data() {
     return {
-      // 数据
+      city: localStorage.getItem('lastCity') || '',
+      temperature: null,
+      uvIndex: null,
+      loading: true,
+      error: null,
+      currentDate: '',
+      currentTime: '',
     }
+  },
+  computed: {
+    getUVLevel() {
+      if (!this.uvIndex) return 'N/A'
+      if (this.uvIndex <= 2) return 'LOW'
+      if (this.uvIndex <= 5) return 'MODERATE'
+      if (this.uvIndex <= 7) return 'HIGH'
+      if (this.uvIndex <= 10) return 'VERY HIGH'
+      return 'EXTREME'
+    },
+  },
+  methods: {
+    updateDateTime() {
+      const now = new Date()
+      this.currentDate = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+      this.currentTime = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    },
+    async fetchWeatherData() {
+      if (!this.city.trim()) {
+        this.error = 'Please enter a location'
+        return
+      }
+
+      this.loading = true
+      this.error = null
+
+      try {
+        const weatherData = await getWeatherData(this.city)
+        this.temperature = Math.round(weatherData.main.temp)
+
+        const uvIndex = await getUVIndex(weatherData.coord.lat, weatherData.coord.lon)
+        this.uvIndex = Math.round(uvIndex)
+
+        localStorage.setItem('lastCity', this.city)
+
+        this.loading = false
+        this.updateDateTime()
+      } catch (error) {
+        this.error = 'Failed to fetch weather data. Please check the location.'
+        this.loading = false
+      }
+    },
+  },
+  created() {
+    this.fetchWeatherData()
+    this.updateDateTime()
+
+    // 每分钟更新时间
+    setInterval(this.updateDateTime, 60000)
   },
 }
 </script>
@@ -219,5 +290,43 @@ export default {
 
 .bg-orange {
   background-color: #fd7e14;
+}
+
+.home {
+  padding: 20px;
+}
+
+.weather-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.weather-info {
+  text-align: center;
+}
+
+.temperature,
+.uv-index {
+  margin: 10px 0;
+  font-size: 1.2em;
+}
+
+h1,
+h2 {
+  color: #2c3e50;
+}
+
+.form-control {
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.5rem;
+}
+
+.form-control:focus {
+  box-shadow: none;
+  border-bottom: 1px solid #0d6efd;
 }
 </style>
