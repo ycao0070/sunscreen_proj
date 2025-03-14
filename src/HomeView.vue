@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <!-- 顶部导航栏 -->
+    <!-- Top Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">UV Aware</a>
@@ -10,7 +10,7 @@
       </div>
     </nav>
 
-    <!-- 导航标签 -->
+    <!-- Navigation Tabs -->
     <ul class="nav nav-tabs">
       <li class="nav-item">
         <a class="nav-link active" href="#">Home</a>
@@ -30,31 +30,37 @@
     </ul>
 
     <div class="container mt-3">
-      <!-- 位置信息 -->
+      <!-- Location Information -->
       <div class="card mb-3">
         <div class="card-body d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center">
             <i class="bi bi-geo-alt-fill text-primary me-2"></i>
-            <span>Lorne, Victoria</span>
+            <input
+              v-model="city"
+              class="form-control form-control-sm"
+              style="width: 200px"
+              @keyup.enter="fetchWeatherData"
+              placeholder="Enter location..."
+            />
           </div>
-          <a href="#" class="text-primary">Change</a>
+          <button class="btn btn-primary btn-sm" @click="fetchWeatherData">Update</button>
         </div>
       </div>
 
-      <!-- UV指数显示 -->
+      <!-- UV Index Display -->
       <div class="card mb-3">
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <div>
-              <h6>Friday, March 13, 2025</h6>
-              <p>12:30 PM • 28°C</p>
+              <h6>{{ currentDate }}</h6>
+              <p>{{ currentTime }} • {{ temperature }}°C</p>
             </div>
             <div class="text-end">
               <p class="text-warning">UV INDEX</p>
-              <h3 class="text-warning">HIGH</h3>
+              <h3 class="text-warning">{{ getUVLevel }}</h3>
             </div>
           </div>
-          <div class="uv-circle">9</div>
+          <div class="uv-circle">{{ uvIndex }}</div>
           <div class="progress">
             <div class="progress-bar bg-success" style="width: 30%"></div>
             <div class="progress-bar bg-warning" style="width: 30%"></div>
@@ -63,23 +69,25 @@
         </div>
       </div>
 
-      <!-- 防护建议 -->
+      <!-- Protection Recommendations -->
       <div class="alert alert-warning">
         <h6>Recommended Protection</h6>
         <p>SPF 30+ sunscreen, hat, sunglasses</p>
         <p><i class="bi bi-alarm"></i> Reapply sunscreen every 2 hours</p>
       </div>
 
-      <!-- 计算器和健康数据 -->
+      <!-- Calculator and Health Data -->
       <div class="row">
         <div class="col-md-6">
           <div class="card">
             <div class="card-body">
               <h5 class="card-title text-primary">Sunscreen Calculator</h5>
-              <select class="form-select mb-3">
-                <option>Skin Type: Type III (Medium)</option>
+              <select class="form-select mb-3" v-model="selectedSkinType">
+                <option v-for="type in skinTypes" :key="type.id" :value="type.id">
+                  {{ type.label }}
+                </option>
               </select>
-              <p>UV Index: 9 (High)</p>
+              <p>UV Index: {{ uvIndex }}</p>
               <div class="teaspoon-circle">2.5</div>
               <p>For face, neck, and both arms</p>
             </div>
@@ -89,39 +97,34 @@
           <div class="card">
             <div class="card-body">
               <h5 class="card-title text-primary">UV Health Impact Data</h5>
-              <div class="tableauPlaceholder" id="viz1741923968547" style="position: relative">
-                <noscript
-                  ><a href="#"
-                    ><img
-                      alt="UV Index Over Time "
-                      src="https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;UV&#47;UVRiskbyDate&#47;Sheet1&#47;1_rss.png"
-                      style="border: none" /></a></noscript
-                ><object class="tableauViz" style="display: none">
-                  <param name="host_url" value="https%3A%2F%2Fpublic.tableau.com%2F" />
-                  <param name="embed_code_version" value="3" />
-                  <param name="site_root" value="" />
-                  <param name="name" value="UVRiskbyDate&#47;Sheet1" />
-                  <param name="tabs" value="no" />
-                  <param name="toolbar" value="yes" />
-                  <param
-                    name="static_image"
-                    value="https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;UV&#47;UVRiskbyDate&#47;Sheet1&#47;1.png"
-                  />
-                  <param name="animate_transition" value="yes" />
-                  <param name="display_static_image" value="yes" />
-                  <param name="display_spinner" value="yes" />
-                  <param name="display_overlay" value="yes" />
-                  <param name="display_count" value="yes" />
-                  <param name="language" value="en-US" />
-                  <param name="filter" value="publish=yes" />
-                </object>
+              <div class="charts-container">
+                <div class="row">
+                  <div class="col-6 mb-3">
+                    <img
+                      src="@/assets/images/skin_cancer_mortality.jpg"
+                      alt="UV Exposure Chart"
+                      class="img-fluid rounded"
+                    />
+                    <p class="text-center mt-2 small">
+                      Skin Cancer Mortality Rates in AUS 2007-2024
+                    </p>
+                  </div>
+                  <div class="col-6 mb-3">
+                    <img
+                      src="@/assets/images/skin_cancer_rates_over_time.jpg"
+                      alt="Skin Health Chart"
+                      class="img-fluid rounded"
+                    />
+                    <p class="text-center mt-2 small">Skin Cancer Rates Over Time</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 功能卡片 -->
+      <!-- Feature Cards -->
       <div class="row mt-3">
         <div class="col-md-4">
           <div class="card">
@@ -165,12 +168,85 @@
 </template>
 
 <script>
+import { getWeatherData, getUVIndex } from './weatherService'
+
 export default {
-  name: 'Home',
+  name: 'HomeView',
   data() {
     return {
-      // 数据
+      city: localStorage.getItem('lastCity') || '',
+      temperature: null,
+      uvIndex: null,
+      loading: true,
+      error: null,
+      currentDate: '',
+      currentTime: '',
+      selectedSkinType: 1,
+      skinTypes: [
+        { id: 1, label: 'Type I (Very Fair) - Always burns, never tans' },
+        { id: 2, label: 'Type II (Fair) - Burns easily, tans minimally' },
+        { id: 3, label: 'Type III (Medium) - Burns moderately, tans gradually' },
+        { id: 4, label: 'Type IV (Olive) - Burns minimally, tans well' },
+        { id: 5, label: 'Type V (Dark) - Burns rarely, tans deeply' },
+      ],
     }
+  },
+  computed: {
+    getUVLevel() {
+      if (!this.uvIndex) return 'N/A'
+      if (this.uvIndex <= 2) return 'LOW'
+      if (this.uvIndex <= 5) return 'MODERATE'
+      if (this.uvIndex <= 7) return 'HIGH'
+      if (this.uvIndex <= 10) return 'VERY HIGH'
+      return 'EXTREME'
+    },
+  },
+  methods: {
+    updateDateTime() {
+      const now = new Date()
+      this.currentDate = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+      this.currentTime = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    },
+    async fetchWeatherData() {
+      if (!this.city.trim()) {
+        this.error = 'Please enter a location'
+        return
+      }
+
+      this.loading = true
+      this.error = null
+
+      try {
+        const weatherData = await getWeatherData(this.city)
+        this.temperature = Math.round(weatherData.main.temp)
+
+        const uvIndex = await getUVIndex(weatherData.coord.lat, weatherData.coord.lon)
+        this.uvIndex = Math.round(uvIndex)
+
+        localStorage.setItem('lastCity', this.city)
+
+        this.loading = false
+        this.updateDateTime()
+      } catch (error) {
+        this.error = `Failed to fetch weather data: ${error.message}`
+        this.loading = false
+      }
+    },
+  },
+  created() {
+    this.fetchWeatherData()
+    this.updateDateTime()
+
+    // Update time every minute
+    setInterval(this.updateDateTime, 60000)
   },
 }
 </script>
@@ -224,5 +300,43 @@ export default {
 
 .bg-orange {
   background-color: #fd7e14;
+}
+
+.home {
+  padding: 20px;
+}
+
+.weather-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.weather-info {
+  text-align: center;
+}
+
+.temperature,
+.uv-index {
+  margin: 10px 0;
+  font-size: 1.2em;
+}
+
+h1,
+h2 {
+  color: #2c3e50;
+}
+
+.form-control {
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.5rem;
+}
+
+.form-control:focus {
+  box-shadow: none;
+  border-bottom: 1px solid #0d6efd;
 }
 </style>
