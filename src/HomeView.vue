@@ -4,9 +4,6 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">UV Aware</a>
-        <div class="ms-auto">
-          <span class="avatar">JL</span>
-        </div>
       </div>
     </nav>
 
