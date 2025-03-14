@@ -60,7 +60,7 @@
               <h3 class="text-warning">{{ getUVLevel }}</h3>
             </div>
           </div>
-          <div class="uv-circle">{{ uvIndex }}</div>
+          <div class="uv-circle" :style="{ background: getUVColor }">{{ uvIndex }}</div>
           <div class="progress">
             <div class="progress-bar bg-success" style="width: 30%"></div>
             <div class="progress-bar bg-warning" style="width: 30%"></div>
@@ -168,7 +168,7 @@
 </template>
 
 <script>
-import { getWeatherData, getUVIndex } from './weatherService'
+import { getWeatherData } from './weatherService'
 
 export default {
   name: 'HomeView',
@@ -200,53 +200,60 @@ export default {
       if (this.uvIndex <= 10) return 'VERY HIGH'
       return 'EXTREME'
     },
+    getUVColor() {
+      if (!this.uvIndex) return '#6c757d'
+      if (this.uvIndex <= 2) return '#28a745'
+      if (this.uvIndex <= 5) return '#ffc107'
+      if (this.uvIndex <= 7) return '#fd7e14'
+      if (this.uvIndex <= 10) return '#dc3545'
+      return '#6f42c1'
+    }
   },
   methods: {
-    updateDateTime() {
-      const now = new Date()
-      this.currentDate = now.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-      this.currentTime = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    },
     async fetchWeatherData() {
       if (!this.city.trim()) {
         this.error = 'Please enter a location'
         return
       }
-
+      
       this.loading = true
       this.error = null
-
+      
       try {
-        const weatherData = await getWeatherData(this.city)
-        this.temperature = Math.round(weatherData.main.temp)
-
-        const uvIndex = await getUVIndex(weatherData.coord.lat, weatherData.coord.lon)
-        this.uvIndex = Math.round(uvIndex)
-
+        const data = await getWeatherData(this.city)
+        this.temperature = Math.round(data.temperature)
+        this.uvIndex = Math.round(data.uv)
+        
+        // Update date and time from API response
+        const localTime = new Date(data.localTime)
+        this.currentDate = localTime.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+        this.currentTime = localTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        
         localStorage.setItem('lastCity', this.city)
-
         this.loading = false
-        this.updateDateTime()
       } catch (error) {
-        this.error = `Failed to fetch weather data: ${error.message}`
+        this.error = 'Failed to fetch weather data. Please check the location.'
         this.loading = false
       }
     },
+    getProgressWidth(min, max) {
+      if (!this.uvIndex) return 0
+      if (this.uvIndex >= min && this.uvIndex <= max) {
+        return 100 / 3 // Equal width for each section
+      }
+      return 0
+    }
   },
   created() {
     this.fetchWeatherData()
-    this.updateDateTime()
-
-    // Update time every minute
-    setInterval(this.updateDateTime, 60000)
   },
 }
 </script>
