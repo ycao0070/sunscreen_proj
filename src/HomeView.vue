@@ -69,11 +69,104 @@
         </div>
       </div>
 
-      <!-- Protection Recommendations -->
-      <div class="alert alert-warning">
-        <h6>Recommended Protection</h6>
-        <p>SPF 30+ sunscreen, hat, sunglasses</p>
-        <p><i class="bi bi-alarm"></i> Reapply sunscreen every 2 hours</p>
+      <!-- UV-Safe Clothing and Protection Guide -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="feature-icon bg-purple text-white">
+              <i class="bi bi-shield-check me-2"></i>
+            </div>
+            <h6 class="ms-2 mb-0">UV Protection Guide</h6>
+          </div>
+          
+          <div class="clothing-recommendations">
+            <div class="recommendation-section">
+              <h6 class="text-primary">
+                <i class="bi bi-shield-check me-2"></i>
+                Clothing Recommendation
+              </h6>
+              <ul class="list-unstyled">
+                <template v-if="!uvIndex">
+                  <li><i class="bi bi-dash-circle me-2"></i>No data available</li>
+                </template>
+                
+                <!-- Low UV (0-2) -->
+                <template v-else-if="uvIndex <= 2">
+                  <li><i class="bi bi-check-circle text-success me-2"></i>Regular daily attire is sufficient</li>
+                </template>
+                
+                <!-- Moderate UV (3-5) -->
+                <template v-else-if="uvIndex <= 5">
+                  <li><i class="bi bi-check-circle text-warning me-2"></i>Long-sleeved shirts</li>
+                  <li><i class="bi bi-check-circle text-warning me-2"></i>Long pants or skirts</li>
+                </template>
+                
+                <!-- High UV (6-7) -->
+                <template v-else-if="uvIndex <= 7">
+                  <li><i class="bi bi-exclamation-circle text-orange me-2"></i>Tightly woven fabrics</li>
+                  <li><i class="bi bi-exclamation-circle text-orange me-2"></i>Darker colors recommended</li>
+                  <li><i class="bi bi-exclamation-circle text-orange me-2"></i>UPF50+ protective clothing</li>
+                </template>
+                
+                <!-- Very High UV (8-10) -->
+                <template v-else-if="uvIndex <= 10">
+                  <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>Full-coverage protective clothing</li>
+                  <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>Professional UPF50+ wear</li>
+                  <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>Sun protective gloves</li>
+                </template>
+                
+                <!-- Extreme UV (11+) -->
+                <template v-else>
+                  <li><i class="bi bi-exclamation-diamond-fill text-purple me-2"></i>Complete protection gear</li>
+                  <li><i class="bi bi-exclamation-diamond-fill text-purple me-2"></i>Multiple protective layers</li>
+                </template>
+              </ul>
+            </div>
+            
+            <div class="recommendation-section mt-3">
+              <h6 class="text-primary">
+                <i class="bi bi-umbrella me-2"></i>
+                Protection Measures
+              </h6>
+              <ul class="list-unstyled">
+                <template v-if="!uvIndex">
+                  <li><i class="bi bi-dash-circle me-2"></i>No data available</li>
+                </template>
+                
+                <!-- Low UV (0-2) -->
+                <template v-else-if="uvIndex <= 2">
+                  <li><i class="bi bi-check-circle text-success me-2"></i>SPF15+ for sensitive skin</li>
+                </template>
+                
+                <!-- Moderate UV (3-5) -->
+                <template v-else-if="uvIndex <= 5">
+                  <li><i class="bi bi-check-circle text-warning me-2"></i>Apply SPF30+ sunscreen</li>
+                  <li><i class="bi bi-check-circle text-warning me-2"></i>Wide-brimmed hat</li>
+                </template>
+                
+                <!-- High UV (6-7) -->
+                <template v-else-if="uvIndex <= 7">
+                  <li><i class="bi bi-exclamation-circle text-orange me-2"></i>SPF50+ sunscreen every 2h</li>
+                  <li><i class="bi bi-exclamation-circle text-orange me-2"></i>UV protective sunglasses</li>
+                  <li><i class="bi bi-exclamation-circle text-orange me-2"></i>Stay in shade</li>
+                </template>
+                
+                <!-- Very High UV (8-10) -->
+                <template v-else-if="uvIndex <= 10">
+                  <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>High SPF, frequent reapply</li>
+                  <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>Full protective gear</li>
+                  <li><i class="bi bi-exclamation-triangle text-danger me-2"></i>Use sun umbrella</li>
+                </template>
+                
+                <!-- Extreme UV (11+) -->
+                <template v-else>
+                  <li><i class="bi bi-exclamation-diamond-fill text-purple me-2"></i>Water-resistant sunscreen</li>
+                  <li><i class="bi bi-exclamation-diamond-fill text-purple me-2"></i>Reapply every 30-60min</li>
+                </template>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Calculator and Health Data -->
@@ -152,18 +245,6 @@
                 >
                   Reset
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="feature-icon bg-purple text-white">
-                  <i class="bi bi-shirt"></i>
-                </div>
-                <h6 class="ms-2 mb-0">UV-Safe Clothing</h6>
               </div>
             </div>
           </div>
@@ -357,6 +438,18 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.feature-icon i {
+  font-size: 1.2rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
 
 .bg-purple {
@@ -415,5 +508,25 @@ h2 {
 .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
+}
+
+.text-orange {
+  color: #fd7e14;
+}
+
+.text-purple {
+  color: #6f42c1;
+}
+
+.recommendation-section {
+  font-size: 0.9rem;
+}
+
+.recommendation-section li {
+  margin-bottom: 0.5rem;
+}
+
+.recommendation-section h6 {
+  margin-bottom: 1rem;
 }
 </style>
