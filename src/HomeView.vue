@@ -129,11 +129,29 @@
         <div class="col-md-4">
           <div class="card">
             <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="feature-icon bg-primary text-white">
-                  <i class="bi bi-alarm"></i>
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                  <div class="feature-icon bg-primary text-white">
+                    <i class="bi bi-alarm"></i>
+                  </div>
+                  <h6 class="ms-2 mb-0">Sunscreen Reminders</h6>
                 </div>
-                <h6 class="ms-2 mb-0">Sunscreen Reminders</h6>
+                <span class="timer-display">{{ formatTime(timerMinutes, timerSeconds) }}</span>
+              </div>
+              <div class="mt-3 d-flex gap-2">
+                <button 
+                  class="btn btn-sm" 
+                  :class="timerActive ? 'btn-danger' : 'btn-primary'"
+                  @click="timerActive ? stopTimer() : startTimer()"
+                >
+                  {{ timerActive ? 'Stop' : 'Start' }}
+                </button>
+                <button 
+                  class="btn btn-sm btn-secondary" 
+                  @click="resetTimer"
+                >
+                  Reset
+                </button>
               </div>
             </div>
           </div>
@@ -189,6 +207,10 @@ export default {
         { id: 4, label: 'Type IV (Olive) - Burns minimally, tans well' },
         { id: 5, label: 'Type V (Dark) - Burns rarely, tans deeply' },
       ],
+      timerMinutes: 120,
+      timerSeconds: 0,
+      timerActive: false,
+      timerId: null,
     }
   },
   computed: {
@@ -250,10 +272,46 @@ export default {
         return 100 / 3 // Equal width for each section
       }
       return 0
+    },
+    startTimer() {
+      if (!this.timerActive) {
+        this.timerActive = true;
+        this.timerMinutes = 120;
+        this.timerSeconds = 0;
+        this.timerId = setInterval(this.updateTimer, 1000);
+      }
+    },
+    stopTimer() {
+      this.timerActive = false;
+      clearInterval(this.timerId);
+    },
+    resetTimer() {
+      this.stopTimer();
+      this.timerMinutes = 120;
+      this.timerSeconds = 0;
+    },
+    updateTimer() {
+      if (this.timerSeconds > 0) {
+        this.timerSeconds--;
+      } else if (this.timerMinutes > 0) {
+        this.timerMinutes--;
+        this.timerSeconds = 59;
+      } else {
+        this.stopTimer();
+        // You might want to add a notification here
+      }
+    },
+    formatTime(minutes, seconds) {
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
   },
   created() {
     this.fetchWeatherData()
+  },
+  beforeUnmount() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+    }
   },
 }
 </script>
@@ -345,5 +403,17 @@ h2 {
 .form-control:focus {
   box-shadow: none;
   border-bottom: 1px solid #0d6efd;
+}
+
+.timer-display {
+  font-family: monospace;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
 }
 </style>
